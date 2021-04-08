@@ -48,6 +48,7 @@ import org.eclipse.californium.core.network.config.NetworkConfig;
 import org.eclipse.californium.core.network.config.NetworkConfig.Keys;
 import org.eclipse.californium.elements.util.SslContextUtil;
 import org.eclipse.californium.scandium.config.DtlsConnectorConfig;
+import org.eclipse.californium.scandium.dtls.SingleNodeConnectionIdGenerator;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -152,6 +153,11 @@ public class LeshanServerDemo {
         options.addOption("wp", "webport", true, "Set the HTTP port for web server.\nDefault: 8080.");
         options.addOption("m", "modelsfolder", true, "A folder which contains object models in OMA DDF(.xml) format.");
         options.addOption("oc", "activate support of old/deprecated cipher suites.");
+        options.addOption("cid", true, "Control usage of DTLS connection ID." //
+                + "\n - Positive value define the size in byte of CID generated."
+                + "\n - 0 value means we accept to use CID but will not generated one for foreign peer (rarely needed for server)."
+                + "\n - Negative value or 'none' value deactivate usage of CID"
+                + "\n (Default: 6,  meaning that CID is used with 6 byte length)");
         options.addOption("r", "redis", true,
                 "Use redis to store registration and securityInfo. \nThe URL of the redis server should be given using this format : 'redis://:password@hostname:port/db_number'\nExample without DB and password: 'redis://localhost:6379'\nDefault: redis is not used.");
         options.addOption("mdns", "publishDNSSdServices", false,
@@ -280,6 +286,18 @@ public class LeshanServerDemo {
         // Get models folder
         String modelsFolderPath = cl.getOptionValue("m");
 
+        // Get CID config
+        String cidOption = cl.getOptionValue("cid");
+        Integer cid = 6;
+        if (cidOption != null) {
+            if ("none".equals(cidOption)) {
+                cid = null;
+            } else {
+                cid = Integer.parseInt(cidOption);
+                cid = cid < 0 ? null : cid;
+            }
+        }
+
         // get the Redis hostname:port
         String redisUrl = cl.getOptionValue("r");
 
@@ -373,7 +391,7 @@ public class LeshanServerDemo {
             createAndStartServer(webAddress, webPort, localAddress, localPort, secureLocalAddress, secureLocalPort,
                     modelsFolderPath, redisUrl, publicKey, privateKey, certificate, trustStore, keyStorePath,
                     keyStoreType, keyStorePass, keyStoreAlias, keyStoreAliasPass, publishDNSSdServices,
-                    cl.hasOption("oc"));
+                    cl.hasOption("oc"), cid);
         } catch (BindException e) {
             System.err.println(
                     String.format("Web port %s is already used, you could change it using 'webport' option.", webPort));
@@ -387,7 +405,8 @@ public class LeshanServerDemo {
             String secureLocalAddress, Integer secureLocalPort, String modelsFolderPath, String redisUrl,
             PublicKey publicKey, PrivateKey privateKey, X509Certificate[] certificate, List<Certificate> trustStore,
             String keyStorePath, String keyStoreType, String keyStorePass, String keyStoreAlias,
-            String keyStoreAliasPass, Boolean publishDNSSdServices, boolean supportDeprecatedCiphers) throws Exception {
+            String keyStoreAliasPass, Boolean publishDNSSdServices, boolean supportDeprecatedCiphers, Integer cid)
+            throws Exception {
         // Prepare LWM2M server
         LeshanServerBuilder builder = new LeshanServerBuilder();
         builder.setEncoder(new DefaultLwM2mNodeEncoder());
@@ -423,6 +442,9 @@ public class LeshanServerDemo {
         // Create DTLS Config
         DtlsConnectorConfig.Builder dtlsConfig = new DtlsConnectorConfig.Builder();
         dtlsConfig.setRecommendedCipherSuitesOnly(!supportDeprecatedCiphers);
+        if (cid != null) {
+            dtlsConfig.setConnectionIdGenerator(new SingleNodeConnectionIdGenerator(cid));
+        }
 
         X509Certificate[] serverCertificateChain = null;
         if (certificate != null) {
