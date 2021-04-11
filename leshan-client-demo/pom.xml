@@ -49,6 +49,12 @@ Contributors:
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+    
+      <dependency>
+        <groupId>red.wjf</groupId>
+        <artifactId>wjf-download</artifactId>
+        <version>0.1.0.RELEASE</version>
+      </dependency>
     </dependencies>
 
     <build>

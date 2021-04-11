@@ -11,6 +11,7 @@ import java.util.Random;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.nio.charset.Charset;
 
 import org.eclipse.leshan.client.resource.BaseInstanceEnabler;
 import org.eclipse.leshan.client.servers.ServerIdentity;
@@ -33,16 +34,23 @@ public class MyDevice extends BaseInstanceEnabler implements Destroyable {
             19, 20, 21);
 
     private final Timer timer;
+    private Integer p_size;
 
     public MyDevice() {
+        this(5);
+    }
+
+    public MyDevice(Integer payload_size) {
+        p_size = payload_size;
         // notify new date each 5 second
         this.timer = new Timer("Device-Current Time");
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                fireResourcesChange(13);
+                //fireResourcesChange(13);
+                fireResourcesChange(0);
             }
-        }, 5000, 5000);
+        }, 15000, 15000);
     }
 
     @Override
@@ -134,7 +142,32 @@ public class MyDevice extends BaseInstanceEnabler implements Destroyable {
     }
 
     private String getManufacturer() {
-        return "Leshan Demo Device";
+        //return "Leshan Demo Device";
+        // byte[] arrayp;
+        // if(p_size == null) {
+        //     arrayp = new byte[5];
+        // }
+        // else {
+        //     arrayp = new byte[p_size];
+        // }
+        // new Random().nextBytes(arrayp);
+        // String generatedString = new String(arrayp, Charset.forName("windows-1252"));
+        // return generatedString;
+
+        if(p_size == null) {
+            p_size = 5;
+        }
+
+        String SALTCHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+        StringBuilder salt = new StringBuilder();
+        Random rnd = new Random();
+        while (salt.length() < p_size) { // length of the random string.
+            int index = (int) (rnd.nextFloat() * SALTCHARS.length());
+            salt.append(SALTCHARS.charAt(index));
+        }
+        String saltStr = salt.toString();
+        return saltStr;
+
     }
 
     private String getModelNumber() {

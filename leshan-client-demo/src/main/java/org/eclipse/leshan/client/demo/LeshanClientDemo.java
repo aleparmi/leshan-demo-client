@@ -205,6 +205,7 @@ public class LeshanClientDemo {
         options.addOption("pos", true,
                 "Set the initial location (latitude, longitude) of the device to be reported by the Location object.\n Format: lat_float:long_float");
         options.addOption("sf", true, "Scale factor to apply when shifting position.\n Default is 1.0." + PSKChapter);
+        options.addOption("bs", true, "Set observation Byte Size");
         options.addOption("i", true, "Set the LWM2M or Bootstrap server PSK identity in ascii.");
         options.addOption("p", true, "Set the LWM2M or Bootstrap server Pre-Shared-Key in hexa." + RPKChapter);
         options.addOption("cpubk", true,
@@ -588,6 +589,17 @@ public class LeshanClientDemo {
             }
         }
 
+        Integer bsize = null;
+        //set observe payload for measurements
+        if (cl.hasOption("bs")) {
+            try {
+                bsize = Integer.valueOf(cl.getOptionValue("bs"));
+            } catch (NumberFormatException e) {
+                System.err.println("Error in choosing observation byte size");
+                return;
+            }
+        }
+
         // Get models folder
         String modelsFolderPath = cl.getOptionValue("m");
 
@@ -595,7 +607,7 @@ public class LeshanClientDemo {
             createAndStartClient(endpoint, localAddress, localPort, cl.hasOption("b"), additionalAttributes,
                     bsAdditionalAttributes, lifetime, communicationPeriod, serverURI, pskIdentity, pskKey,
                     clientPrivateKey, clientPublicKey, serverPublicKey, clientCertificate, serverCertificate,
-                    trustStore, certificateUsage, latitude, longitude, scaleFactor, cl.hasOption("ocf"),
+                    trustStore, certificateUsage, latitude, longitude, scaleFactor, bsize, cl.hasOption("ocf"),
                     cl.hasOption("oc"), cl.hasOption("r"), cl.hasOption("f"), modelsFolderPath, ciphers);
         } catch (Exception e) {
             System.err.println("Unable to create and start client ...");
@@ -609,11 +621,12 @@ public class LeshanClientDemo {
             Integer communicationPeriod, String serverURI, byte[] pskIdentity, byte[] pskKey,
             PrivateKey clientPrivateKey, PublicKey clientPublicKey, PublicKey serverPublicKey,
             X509Certificate clientCertificate, X509Certificate serverCertificate, List<Certificate> trustStore,
-            CertificateUsage certificateUsage, Float latitude, Float longitude, float scaleFactor,
+            CertificateUsage certificateUsage, Float latitude, Float longitude, float scaleFactor, Integer bsize,
             boolean supportOldFormat, boolean supportDeprecatedCiphers, boolean reconnectOnUpdate,
             boolean forceFullhandshake, String modelsFolderPath, List<CipherSuite> ciphers) throws Exception {
 
         locationInstance = new MyLocation(latitude, longitude, scaleFactor);
+
 
         // Initialize model
         List<ObjectModel> models = ObjectLoader.loadDefault();
@@ -658,7 +671,10 @@ public class LeshanClientDemo {
                 initializer.setInstancesForObject(SERVER, new Server(123, lifetime));
             }
         }
-        initializer.setInstancesForObject(DEVICE, new MyDevice());
+        if (bsize == null) {
+            bsize = 5;
+        }
+        initializer.setInstancesForObject(DEVICE, new MyDevice(bsize));
         initializer.setInstancesForObject(LOCATION, locationInstance);
         initializer.setInstancesForObject(OBJECT_ID_TEMPERATURE_SENSOR, new RandomTemperatureSensor());
         List<LwM2mObjectEnabler> enablers = initializer.createAll();
