@@ -697,6 +697,10 @@ public class LeshanClientDemo {
             dtlsConfig.setSupportedCipherSuites(ciphers);
         }
 
+        dtlsConfig.setEnableMultiHandshakeMessageRecords(false);
+        dtlsConfig.setEnableMultiRecordMessages(false);
+
+
         // Configure Registration Engine
         DefaultRegistrationEngineFactory engineFactory = new DefaultRegistrationEngineFactory();
         engineFactory.setCommunicationPeriod(communicationPeriod);
