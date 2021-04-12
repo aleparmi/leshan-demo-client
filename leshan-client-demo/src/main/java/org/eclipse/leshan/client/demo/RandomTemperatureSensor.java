@@ -39,13 +39,15 @@ public class RandomTemperatureSensor extends BaseInstanceEnabler implements Dest
 
     public RandomTemperatureSensor() {
         this.scheduler = Executors.newSingleThreadScheduledExecutor(new NamedThreadFactory("Temperature Sensor"));
+
         scheduler.scheduleAtFixedRate(new Runnable() {
 
             @Override
             public void run() {
                 adjustTemperature();
             }
-        }, 2, 2, TimeUnit.SECONDS);
+
+        }, 15, 15, TimeUnit.SECONDS);
     }
 
     @Override
