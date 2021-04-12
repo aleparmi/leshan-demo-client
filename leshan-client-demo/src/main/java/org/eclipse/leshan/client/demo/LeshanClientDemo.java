@@ -702,6 +702,9 @@ public class LeshanClientDemo {
             dtlsConfig.setConnectionIdGenerator(new SingleNodeConnectionIdGenerator(cid));
         }
 
+        dtlsConfig.setEnableMultiHandshakeMessageRecords(false);
+        dtlsConfig.setEnableMultiRecordMessages(false);
+
         // Configure Registration Engine
         DefaultRegistrationEngineFactory engineFactory = new DefaultRegistrationEngineFactory();
         engineFactory.setCommunicationPeriod(communicationPeriod);
