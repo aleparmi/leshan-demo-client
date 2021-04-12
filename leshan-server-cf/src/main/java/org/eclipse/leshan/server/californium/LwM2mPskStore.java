@@ -49,7 +49,7 @@ public class LwM2mPskStore implements AdvancedPskStore {
 
     @Override
     public boolean hasEcdhePskSupported() {
-        return true;
+        return false;
     }
 
     @Override

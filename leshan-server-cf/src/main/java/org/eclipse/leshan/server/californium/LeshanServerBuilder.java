@@ -380,6 +380,7 @@ public class LeshanServerBuilder {
      *      "https://github.com/eclipse/leshan/wiki/LWM2M-Devices-with-Dynamic-IP#is-the-update-request-mandatory--should-i-update-registration-on-notification-">Dynamic
      *      IP environnement documentaiton</a>
      */
+
     public LeshanServerBuilder setUpdateRegistrationOnNotification(boolean updateRegistrationOnNotification) {
         this.updateRegistrationOnNotification = updateRegistrationOnNotification;
         return this;
@@ -391,6 +392,7 @@ public class LeshanServerBuilder {
     public static NetworkConfig createDefaultNetworkConfig() {
         NetworkConfig networkConfig = new NetworkConfig();
         networkConfig.set(Keys.MID_TRACKER, "NULL");
+	networkConfig.set(Keys.RESPONSE_MATCHING, "RELAXED");
         return networkConfig;
     }
 
